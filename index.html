@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open Mics</title>
+    <style type="text/css">
+      html, body, #map-canvas {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script>
+      let map = null;
+      let infowindow = null;
+      function addPosition(mic) {
+        const [lat, long] = mic.geo.split(':');
+        const marker = new google.maps.Marker({
+          position: new google.maps.LatLng(lat, long),
+          map,
+          title: mic.name // this works, giving the marker a title with the correct title
+        });
+        google.maps.event.addListener(marker, 'click', function() {
+          if (infowindow) {
+            infowindow.close();
+          }
+          infowindow = new google.maps.InfoWindow({
+            content: `<strong>${mic.name}</strong><br />
+            Venue: ${mic.venue}<br />
+            Details: ${mic.details}<br />
+            Address: ${mic.address}<br />
+            City: ${mic.city}<br />
+            State ${mic.state}<br />
+            Capacity: ${mic.capacity}<br />
+            Email: ${mic.email}<br />
+            Day: ${mic.day}<br />
+            Time: ${mic.displaytime}
+            `,
+          });
+          infowindow.open(map, marker);
+        });
+      }
+
+      function start() {
+
+        var mapOptions = {
+          zoom: 10,
+          center: new google.maps.LatLng(40.7128, -74.0060)
+        };
+
+        // Creating the map
+        map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        fetch('http://restful.solutions/freemics7/mics/1')
+          .then(response => response.json())
+          .then((response) => {
+            response.mics.forEach((mic) => {
+              addPosition(mic);
+            });
+          });
+      }
+
+      google.maps.event.addDomListener(window, 'load', start);
+    </script>
+  </body>
+</html>
