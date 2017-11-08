@@ -10,14 +10,46 @@
         margin: 0;
         padding: 0;
       }
+      .days {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      .active {
+        background-color: #4f94cd;
+        color: #fff;
+      }
     </style>
   </head>
   <body>
     <div id="map-canvas"></div>
+    <div class="days">
+      <button data-id="mon" onClick="loadDay('mon')">Monday</button>
+      <button data-id="tues" onClick="loadDay('tues')">Tuesday</button>
+      <button data-id="wed" onClick="loadDay('wed')">Wednesday</button>
+      <button data-id="thurs" onClick="loadDay('thurs')">Thursday</button>
+      <button data-id="fri" onClick="loadDay('fri')">Friday</button>
+      <button data-id="sat" onClick="loadDay('sat')">Saturday</button>
+      <button data-id="sun" onClick="loadDay('sun')">Sunday</button>
+    </div>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
     <script>
       let map = null;
       let infowindow = null;
+      const markers = [];
+      let mics = [];
+      function loadDay(day) {
+        const days = Array.prototype.slice.call(document.querySelectorAll('.days button'));
+        days.forEach((button) => { button.className = button.dataset.id === day ? 'active' : ''; });
+        markers.forEach(marker => marker.setMap(null));
+        markers.length = 0;
+        mics
+          .filter(mic => mic.day === day)
+          .forEach((mic) => {
+            addPosition(mic);
+          });
+      }
+
       function addPosition(mic) {
         const [lat, long] = mic.geo.split(':');
         const marker = new google.maps.Marker({
@@ -25,6 +57,7 @@
           map,
           title: mic.name // this works, giving the marker a title with the correct title
         });
+        markers.push(marker);
         google.maps.event.addListener(marker, 'click', function() {
           if (infowindow) {
             infowindow.close();
@@ -58,9 +91,8 @@
         fetch('http://restful.solutions/freemics7/mics/1')
           .then(response => response.json())
           .then((response) => {
-            response.mics.forEach((mic) => {
-              addPosition(mic);
-            });
+            mics = response.mics;
+            loadDay('mon');
           });
       }
 
